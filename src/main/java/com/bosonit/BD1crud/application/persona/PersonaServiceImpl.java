@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
@@ -111,10 +112,7 @@ public class PersonaServiceImpl implements PersonaService{
         {
             switch (field)
             {
-                case "pagina":
-                    CriteriaQuery<Long> countQuery = cb.createQuery(Long.class);
-                    countQuery.select(cb.count(countQuery.from(Persona.class)));
-                    Long count = entityManager.createQuery(countQuery).getSingleResult();
+
                 case "usuario":
                     predicates.add(cb.like(root.get(field), (String)value));
                     break;
@@ -152,8 +150,13 @@ public class PersonaServiceImpl implements PersonaService{
             }
 
         });
+
+
         query.select(root).where(predicates.toArray(new Predicate[predicates.size()]));
-        return entityManager.createQuery(query).getResultList();
+        TypedQuery<Persona> typedQuery = entityManager.createQuery(query);
+        typedQuery.setFirstResult((Integer.parseInt((String) data.get("pagina"))-1)*Integer.parseInt((String) data.get("registros")));
+        typedQuery.setMaxResults(Integer.parseInt((String)data.get("registros")));
+        return typedQuery.getResultList();
     }
 
 
