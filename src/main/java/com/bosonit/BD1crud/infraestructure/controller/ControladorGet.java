@@ -8,10 +8,7 @@ import com.bosonit.BD1crud.domain.Persona;
 import com.bosonit.BD1crud.exceptions.IdNoEncontrada;
 import com.bosonit.BD1crud.exceptions.UnprocesableException;
 import com.bosonit.BD1crud.infraestructure.controller.dto.input.StudentInputDto;
-import com.bosonit.BD1crud.infraestructure.controller.dto.output.AsignaturaOutputDto;
-import com.bosonit.BD1crud.infraestructure.controller.dto.output.PersonaOutputDto;
-import com.bosonit.BD1crud.infraestructure.controller.dto.output.ProfesorOutputDtoSimple;
-import com.bosonit.BD1crud.infraestructure.controller.dto.output.StudentOutputDtoSimple;
+import com.bosonit.BD1crud.infraestructure.controller.dto.output.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -166,5 +163,11 @@ public class ControladorGet {
         data.put("pagina",pagina);
         return personaServiceImpl.getData(data);
     }
+    @GetMapping("persona/customqueryjoin/{idusuario}")
+    public List<PersonaOutputDtoJoin> getPersonaJoinStudent(@PathVariable String idusuario) {
+
+        return personaServiceImpl.getJoinData(idusuario);
+    }
+
 
 }

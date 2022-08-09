@@ -53,6 +53,10 @@ public class Student {
 
     String branch;
 
+    String id_persona;
+
+
+
 
     @JsonIgnore
     @ManyToMany(mappedBy="estudiantesApuntados")
@@ -116,5 +120,8 @@ public class Student {
                 ", comments='" + comments + '\'' +
                 ", branch='" + branch + '\'' +
                 '}';
+    }
+    public String getId_persona() {
+        return this.persona.getId();
     }
 }

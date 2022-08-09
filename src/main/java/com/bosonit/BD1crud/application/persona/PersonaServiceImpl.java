@@ -2,11 +2,15 @@ package com.bosonit.BD1crud.application.persona;
 
 import com.bosonit.BD1crud.domain.Persona;
 import com.bosonit.BD1crud.domain.Persona_;
-import com.bosonit.BD1crud.exceptions.IdNoEncontrada;
+import com.bosonit.BD1crud.domain.Student;
+import com.bosonit.BD1crud.domain.Student_;
 import com.bosonit.BD1crud.exceptions.UnprocesableException;
 import com.bosonit.BD1crud.infraestructure.controller.dto.input.PersonaInputDto;
 import com.bosonit.BD1crud.infraestructure.controller.dto.output.PersonaOutputDto;
+import com.bosonit.BD1crud.infraestructure.controller.dto.output.PersonaOutputDtoJoin;
 import com.bosonit.BD1crud.infraestructure.repository.PersonaJpa;
+import com.bosonit.BD1crud.infraestructure.repository.StudentJpa;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,10 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.criteria.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -33,6 +34,8 @@ public class PersonaServiceImpl implements PersonaService{
 
     @Autowired
     PersonaJpa personaJpa;
+
+
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -124,17 +127,10 @@ public class PersonaServiceImpl implements PersonaService{
                     break;
                 case "creacion":
                     String dateCondition=(String) data.get("dateCondition");
-                    switch (dateCondition)
-                    {
-                        case GREATER_THAN:
-                            predicates.add(cb.greaterThan(root.<Date>get(field),(Date)value));
-                            break;
-                        case LESS_THAN:
-                            predicates.add(cb.lessThan(root.<Date>get(field),(Date)value));
-                            break;
-                        case EQUAL:
-                            predicates.add(cb.equal(root.<Date>get(field),(Date)value));
-                            break;
+                    switch (dateCondition) {
+                        case GREATER_THAN -> predicates.add(cb.greaterThan(root.<Date>get(field), (Date) value));
+                        case LESS_THAN -> predicates.add(cb.lessThan(root.<Date>get(field), (Date) value));
+                        case EQUAL -> predicates.add(cb.equal(root.<Date>get(field), (Date) value));
                     }
                     break;
                 case "ordenacion":
@@ -157,6 +153,56 @@ public class PersonaServiceImpl implements PersonaService{
         typedQuery.setFirstResult((Integer.parseInt((String) data.get("pagina"))-1)*Integer.parseInt((String) data.get("registros")));
         typedQuery.setMaxResults(Integer.parseInt((String)data.get("registros")));
         return typedQuery.getResultList();
+    }
+
+    @Override
+    @JsonIgnore
+    public List<PersonaOutputDtoJoin> getJoinData(String idusuario) {
+//        String id_studenttest = personaJpa.findById(idusuario).orElseThrow().getStudent().getId_student();
+//
+//        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+//        CriteriaQuery<Persona> cq = cb.createQuery(Persona.class);
+//        Root<Persona> root = cq.from(Persona.class);
+//        Join<Persona, Student> personaStudent = root.join(Persona_.STUDENT);
+//
+//        ParameterExpression<String> id_student = cb.parameter(String.class);
+//        cq.where(cb.like(personaStudent.get(Student_.id_student), id_student));
+//
+//        TypedQuery<Persona> q = entityManager.createQuery(cq);
+//        q.setParameter(id_student, id_studenttest);
+//        List<Persona> personaJoin = q.getResultList();
+//
+//        return personaJoin;
+
+
+
+
+
+
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<PersonaOutputDtoJoin> query = cb.createQuery(PersonaOutputDtoJoin.class);
+
+        String id_student = personaJpa.findById(idusuario).orElseThrow().getStudent().getId_student();
+
+        Root<Persona> personaTable = query.from(Persona.class);
+        Join<Persona, Student> studentJoin = personaTable.join(Persona_.STUDENT, JoinType.INNER);
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.equal(personaTable.get(Persona_.ID), idusuario));
+        predicates.add(cb.equal(studentJoin.get(Student_.id_student), id_student));
+
+        query.multiselect(
+                personaTable.get(Persona_.name),
+                personaTable.get(Persona_.surname),
+                studentJoin.get(Student_.branch),
+                studentJoin.get(Student_.COMMENTS));
+
+        query.where(predicates.stream().toArray(Predicate[]::new));
+        TypedQuery<PersonaOutputDtoJoin> typedQuery = entityManager.createQuery(query);
+
+        List<PersonaOutputDtoJoin> resultList = typedQuery.getResultList();
+        return resultList;
+
     }
 
 

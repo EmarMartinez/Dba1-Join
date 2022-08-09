@@ -3,6 +3,7 @@ package com.bosonit.BD1crud.application.persona;
 import com.bosonit.BD1crud.domain.Persona;
 import com.bosonit.BD1crud.infraestructure.controller.dto.input.PersonaInputDto;
 import com.bosonit.BD1crud.infraestructure.controller.dto.output.PersonaOutputDto;
+import com.bosonit.BD1crud.infraestructure.controller.dto.output.PersonaOutputDtoJoin;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
@@ -18,4 +19,6 @@ public interface PersonaService {
 
 
     List<Persona> getData(HashMap<String, Object> data);
+
+    List<PersonaOutputDtoJoin> getJoinData(String idusuario);
 }
